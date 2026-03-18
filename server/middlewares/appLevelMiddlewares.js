@@ -3,5 +3,9 @@ exports.apiNotFound=(req, res, next)=>{
 }
 
 exports.globalError=(error, req, res, next)=>{
-    return res.status(400).json({message:"something went wrong", error_code:error.message})
+    console.log(error)
+    return res.status(error.statusCode).json({success:false, message:error.message || "something went wrong", error:{
+        code: error.message.toUpperCase() || "SOMETHING_WENT_WRONG",
+        data:error.message
+    }})
 }

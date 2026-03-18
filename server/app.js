@@ -2,7 +2,11 @@ const express = require("express");
 const app = express()
 const {port} = require("./constants/env.js")
 const {apiNotFound, globalError} = require("./middlewares/appLevelMiddlewares.js")
+const { connectDb } = require("./configs/mongodb.js")
+connectDb()
 
+app.use(express.json())
+app.use(express.urlencoded())
 
 app.get("/", (req, res)=>{
     try {

@@ -1,3 +1,3 @@
 require("dotenv").config();
 
-exports.port = process.env.port
+module.exports = process.env
