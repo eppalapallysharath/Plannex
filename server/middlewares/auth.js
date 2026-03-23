@@ -6,7 +6,7 @@ exports.authentication = async(req, res, next)=>{
           const {authorization} = req.headers
     const token  = authorization.split(" ")[1]
     const decodeToken = await jwt.verify(token, jwt_secret_key)
-    const verify = await userModel.findOne({email:decodeToken.email}) 
+    const verify = await userModel.findOne({_id:decodeToken.id}) 
     if(verify){
         req.user = verify
         next()
@@ -22,4 +22,19 @@ exports.authentication = async(req, res, next)=>{
        next(err) 
     }
   
+}
+
+
+
+exports.authorization  = (...roles) =>{
+    return(req, res, next)=>{
+        if(roles.includes(req.user.role)){
+            next()
+        }else{
+            return res.status(403).json({success:false, message:"Access denied", error:{
+                code:"ACCESS_DENIED",
+                data:null
+            }})
+        }
+    }
 }

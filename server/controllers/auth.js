@@ -10,6 +10,8 @@ const {
 } = require("../helperfunctions/emailTemplate.js");
 const { mail } = require("../configs/nodemailer.js");
 const env = require("../constants/env.js");
+const cloudinary = require("../configs/cloudinary.js");
+const fs = require("fs")
 
 exports.register = async (req, res, next) => {
   try {
@@ -37,7 +39,7 @@ exports.register = async (req, res, next) => {
       subject: "Welcome to plannex",
       html: signupTemplateForParticipants(name),
     });
-    const token = await createToken({ email: createUser.email });
+    const token = await createToken({ id: createUser._id });
     return res.status(201).json({
       success: true,
       message: "Registered successfully",
@@ -78,7 +80,7 @@ exports.signupAsOrganizers = async (req, res, next) => {
       subject: "Welcome to Plannex",
       html: signupTemplateForOrganizer(name),
     });
-    const token = await createToken({ email: createUser.email });
+    const token = await createToken({ id: createUser._id });
     return res.status(201).json({
       success: true,
       message: "Signup successfully",
@@ -108,22 +110,18 @@ exports.login = async (req, res, next) => {
     }
     const verifyPassword = await bcryptjs.compare(password, checkUser.password);
     if (verifyPassword) {
-      const token = await createToken({ email: checkUser.email });
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "Login Successful",
-          data: { code: "LOGIN_SUCCESSFULLY", data: checkUser, token: token },
-        });
+      const token = await createToken({ id: checkUser._id });
+      return res.status(200).json({
+        success: true,
+        message: "Login Successful",
+        data: { code: "LOGIN_SUCCESSFULLY", data: checkUser, token: token },
+      });
     } else {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid email/password",
-          data: { code: "INVALID_EMAIL/PASSWORD", data: null },
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email/password",
+        data: { code: "INVALID_EMAIL/PASSWORD", data: null },
+      });
     }
   } catch (error) {
     const err = new Error(error);
@@ -147,10 +145,91 @@ exports.profile = async (req, res, next) => {
   }
 };
 
-exports.updateProfile = async (req, res) => {
+exports.updateProfile = async (req, res, next) => {
   try {
-    res.send("update profile");
+    const { name, email, password } = req.body;
+    if (await userModel.findOne({ email: email })) {
+      return res.status(409).json({
+        success: false,
+        message: "email already exists",
+        error: {
+          code: "EMAIL_EXISTS",
+          data: `${email} already exists`,
+        },
+      });
+    }
+    let file;
+    if(req.file){
+       if(req.file.mimetype.startsWith("image/")) {
+      const data = await cloudinary.uploader.upload(req.file.path, {
+        folder: "plannex",
+        resource_type: "image",
+      });
+      file = data
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "profile pic must be image only",
+        error: {
+          code: "PROFILE_PIC_IMAGE_ONLY",
+          data: null,
+        },
+      });
+    }
+    fs.unlinkSync(req.file.path)
+    }
+   
+    if (name || email || password || file) {
+      if (password) {
+        const hashedPassword = await generateHashPassword(password);
+        const update = await userModel.findByIdAndUpdate(
+          req.user._id,
+          {
+            name: name,
+            password: hashedPassword,
+            email: email,
+            profileImage: {
+              fileUrl: file.url || null,
+              filePath: file.asset_folder + "/" + file.original_filename || null,
+            },
+          },
+          { new: true },
+        );
+        return res.json({
+          success: true,
+          message: "profile updated successfully ",
+          data: { code: "PROFILE UPDATE SUCCESSFULLY", data: update },
+        });
+      } else {
+        const update = await userModel.findByIdAndUpdate(
+          req.user._id,
+          {
+            name: name,
+            email: email,
+            profileImage: {
+              fileUrl: file.url || null,
+              filePath: file.asset_folder + "/" + file.original_filename || null,
+            },
+          },
+          { new: true },
+        );
+        return res.json({
+          success: true,
+          message: "profile updated successfully ",
+          data: { code: "PROFILE UPDATE SUCCESSFULLY", data: update },
+        });
+      }
+    } else {
+      const profile = await userModel.findById(req.user._id);
+      return res.json({
+        success: true,
+        message: "profile updated successfully ",
+        data: { code: "PROFILE UPDATE SUCCESSFULLY", data: profile },
+      });
+    }
   } catch (error) {
-    res.status(400).send("something went wrong");
+    const err = new Error(error);
+    err.statusCode = 400;
+    next(err);
   }
 };

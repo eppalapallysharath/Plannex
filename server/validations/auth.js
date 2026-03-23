@@ -49,3 +49,25 @@ exports.validateAuthHeaders= [
     .bail()
     .matches(/^Bearer\s.+$/).withMessage('Invalid Authorization format. Use Bearer token'),
 ];
+
+exports.updateProfileValidation = [
+  body("name")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Name cannot be empty")
+    .isLength({ min: 3 })
+    .withMessage("Name must be at least 3 characters"),
+
+  body("email")
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage("Invalid email format"),
+
+  body("password")
+    .optional()
+    .trim()
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters")
+];
