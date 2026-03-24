@@ -145,91 +145,183 @@ exports.profile = async (req, res, next) => {
   }
 };
 
+// exports.updateProfile = async (req, res, next) => {
+//   try {
+//     const { name, email, password } = req.body;
+//     if (await userModel.findOne({ email: email })) {
+//       return res.status(409).json({
+//         success: false,
+//         message: "email already exists",
+//         error: {
+//           code: "EMAIL_EXISTS",
+//           data: `${email} already exists`,
+//         },
+//       });
+//     }
+//     let file;
+//     if(req.file){
+//        if(req.file.mimetype.startsWith("image/")) {
+//       const data = await cloudinary.uploader.upload(req.file.path, {
+//         folder: "plannex",
+//         resource_type: "image",
+//       });
+//       file = data
+//     } else {
+//       return res.status(400).json({
+//         success: false,
+//         message: "profile pic must be image only",
+//         error: {
+//           code: "PROFILE_PIC_IMAGE_ONLY",
+//           data: null,
+//         },
+//       });
+//     }
+//     fs.unlinkSync(req.file.path)
+//     }
+   
+//     if (name || email || password || file) {
+//       if (password) {
+//         const hashedPassword = await generateHashPassword(password);
+//         const update = await userModel.findByIdAndUpdate(
+//           req.user._id,
+//           {
+//             name: name,
+//             password: hashedPassword,
+//             email: email,
+//             profileImage: {
+//               fileUrl: file.url || null,
+//               filePath: file.asset_folder + "/" + file.original_filename || null,
+//             },
+//           },
+//           { new: true },
+//         );
+//         return res.json({
+//           success: true,
+//           message: "profile updated successfully ",
+//           data: { code: "PROFILE UPDATE SUCCESSFULLY", data: update },
+//         });
+//       } else {
+//         const update = await userModel.findByIdAndUpdate(
+//           req.user._id,
+//           {
+//             name: name,
+//             email: email,
+//             profileImage: {
+//               fileUrl: file.url || null,
+//               filePath: file.asset_folder + "/" + file.original_filename || null,
+//             },
+//           },
+//           { new: true },
+//         );
+//         return res.json({
+//           success: true,
+//           message: "profile updated successfully ",
+//           data: { code: "PROFILE UPDATE SUCCESSFULLY", data: update },
+//         });
+//       }
+//     } else {
+//       const profile = await userModel.findById(req.user._id);
+//       return res.json({
+//         success: true,
+//         message: "profile updated successfully ",
+//         data: { code: "PROFILE UPDATE SUCCESSFULLY", data: profile },
+//       });
+//     }
+//   } catch (error) {
+//     const err = new Error(error);
+//     err.statusCode = 400;
+//     next(err);
+//   }
+// };
+
+
 exports.updateProfile = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-    if (await userModel.findOne({ email: email })) {
-      return res.status(409).json({
-        success: false,
-        message: "email already exists",
-        error: {
-          code: "EMAIL_EXISTS",
-          data: `${email} already exists`,
-        },
+    const userId = req.user._id;
+
+    // 1. Email uniqueness check (exclude current user)
+    if (email) {
+      const existingUser = await userModel.findOne({
+        email,
+        _id: { $ne: userId },
       });
+
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          message: "Email already exists",
+          error: {
+            code: "EMAIL_EXISTS",
+            data: email,
+          },
+        });
+      }
     }
-    let file;
-    if(req.file){
-       if(req.file.mimetype.startsWith("image/")) {
+
+    // 2. Handle file upload (if exists)
+    let profileImage;
+    if (req.file) {
+      if (!req.file.mimetype.startsWith("image/")) {
+        return res.status(400).json({
+          success: false,
+          message: "Profile pic must be an image",
+          error: {
+            code: "PROFILE_PIC_IMAGE_ONLY",
+          },
+        });
+      }
+
       const data = await cloudinary.uploader.upload(req.file.path, {
         folder: "plannex",
         resource_type: "image",
       });
-      file = data
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "profile pic must be image only",
-        error: {
-          code: "PROFILE_PIC_IMAGE_ONLY",
-          data: null,
-        },
-      });
+
+      profileImage = {
+        fileUrl: data.secure_url,
+        filePath: `${data.asset_folder}/${data.public_id}`,
+      };
+
+      // async delete (non-blocking)
+      fs.unlink(req.file.path, () => {});
     }
-    fs.unlinkSync(req.file.path)
+
+    // 3. Build update object dynamically
+    const updateData = {};
+
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (profileImage) updateData.profileImage = profileImage;
+
+    if (password) {
+      updateData.password = await generateHashPassword(password);
     }
-   
-    if (name || email || password || file) {
-      if (password) {
-        const hashedPassword = await generateHashPassword(password);
-        const update = await userModel.findByIdAndUpdate(
-          req.user._id,
-          {
-            name: name,
-            password: hashedPassword,
-            email: email,
-            profileImage: {
-              fileUrl: file.url || null,
-              filePath: file.asset_folder + "/" + file.original_filename || null,
-            },
-          },
-          { new: true },
-        );
-        return res.json({
-          success: true,
-          message: "profile updated successfully ",
-          data: { code: "PROFILE UPDATE SUCCESSFULLY", data: update },
-        });
-      } else {
-        const update = await userModel.findByIdAndUpdate(
-          req.user._id,
-          {
-            name: name,
-            email: email,
-            profileImage: {
-              fileUrl: file.url || null,
-              filePath: file.asset_folder + "/" + file.original_filename || null,
-            },
-          },
-          { new: true },
-        );
-        return res.json({
-          success: true,
-          message: "profile updated successfully ",
-          data: { code: "PROFILE UPDATE SUCCESSFULLY", data: update },
-        });
-      }
-    } else {
-      const profile = await userModel.findById(req.user._id);
+
+    // 4. If nothing to update → return current profile
+    if (Object.keys(updateData).length === 0) {
+      const profile = await userModel.findById(userId);
       return res.json({
         success: true,
-        message: "profile updated successfully ",
-        data: { code: "PROFILE UPDATE SUCCESSFULLY", data: profile },
+        message: "No changes applied",
+        data: profile,
       });
     }
+
+    // 5. Single DB call
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true }
+    );
+
+    return res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+
   } catch (error) {
-    const err = new Error(error);
-    err.statusCode = 400;
-    next(err);
+    error.statusCode = error.statusCode || 500;
+    next(error);
   }
 };

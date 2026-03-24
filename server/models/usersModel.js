@@ -8,6 +8,9 @@ const usersSchema = new mongoose.Schema({
     profileImage:{
         filePath: {type:String, default:"default image"},
         fileUrl: {type:String, default:"https://cdn-icons-png.flaticon.com/512/8847/8847419.png"}
-    }
+    },
+    events:[
+        {type:mongoose.Types.ObjectId, ref:"events"}
+    ]
 },{timestamps:true})
 exports.userModel = mongoose.model("users", usersSchema)
