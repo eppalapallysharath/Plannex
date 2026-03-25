@@ -155,3 +155,40 @@ exports.signupTemplateForParticipants = (name) => {
   </html>
   `;
 };
+
+
+exports.eventRegistrationTemplate = ( name, eventTitle, eventDate, eventLocation ) => {
+  return `
+  <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px;">
+    
+    <div style="max-width:600px; margin:auto; background:#ffffff; padding:20px; border-radius:6px;">
+      
+      <h2 style="margin-top:0; color:#333;">Registration Confirmed 🎉</h2>
+      
+      <p style="color:#555;">
+        Hi ${name},
+      </p>
+
+      <p style="color:#555;">
+        You have successfully registered for the event:
+      </p>
+
+      <div style="background:#f9fafb; padding:15px; border-radius:5px; margin:15px 0;">
+        <p style="margin:5px 0;"><strong>Event:</strong> ${eventTitle}</p>
+        <p style="margin:5px 0;"><strong>Date:</strong> ${eventDate}</p>
+        <p style="margin:5px 0;"><strong>Location:</strong> ${eventLocation}</p>
+      </div>
+
+      <p style="color:#555;">
+        We look forward to seeing you there!
+      </p>
+
+      <p style="color:#555;">
+        — Plannex Team
+      </p>
+
+    </div>
+
+  </div>
+  `;
+};

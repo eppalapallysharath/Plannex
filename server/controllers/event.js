@@ -82,18 +82,76 @@ exports.getEvent = async(req,res)=>{
     }
 }
 
-exports.updateEvent = (req,res)=>{
+exports.updateEvent = async(req,res)=>{
     try {
-        
+        const checkEvent = await eventsModel.findOne({_id:req.params.eid, organizedID:req.user._id})
+        if(checkEvent){
+            checkEvent.title = req.body.title
+            checkEvent.description = req.body.description
+            checkEvent.category = req.body.category
+            checkEvent.capacity = req.body.capacity
+            checkEvent.price= req.body.price
+            checkEvent.location= req.body.location
+            checkEvent.date = req.body.date
+
+            if(req.file.mimetype.startsWith("image/")){
+                const data = await cloudinary.uploader.upload(req.file.path, {
+                    resource_type:"image",
+                    folder:"plannex"
+                }) 
+                checkEvent.posterImage = data.secure_url
+                fs.unlink(req.file.path, ()=>{})
+            }else{
+                res.status(400).json({
+                    success:false,
+                    success: false,
+                    message: "Poster Image must be an image",
+                    error: {
+                        code: "POSTE_IMAGE_ONLY",
+                    },
+                })
+            }
+            checkEvent.save()
+            res.json({success:true, message:"Event updated successfully", data:{
+                code:"EVENT_UPDATED",
+                data:checkEvent
+            }})
+        }else{
+            return res.status(404).json({
+                  success:true, 
+            message: "event not found",
+            data:{
+                code:"EVENT_NOT_FOUND",
+                data:null
+            }
+            })
+        }
     } catch (error) {
         console.log(error)
         res.status(400).send("something went wrong")
     }
 }
 
-exports.deleteEvent = (req,res)=>{
+exports.deleteEvent = async(req,res)=>{
     try {
-        res.send("delete event")
+        const checkEvent = await eventsModel.findOne({_id:req.params.eid, organizedID:req.user._id})
+        if(checkEvent){
+            // const deleteEvent =   await checkEvent.deleteOne();
+            const deleteEvent =   await eventsModel.deleteOne({_id:req.params.eid, organizedID:req.user._id});
+            res.json({success:true, message:"Event deleted successfully", data:{
+                code:"EVENT_DELETED",
+                data:deleteEvent
+            }})
+        }else{
+             return res.status(404).json({
+                  success:true, 
+            message: "event not found",
+            data:{
+                code:"EVENT_NOT_FOUND",
+                data:null
+            }
+            })
+        }
     } catch (error) {
         console.log(error)
         res.status(400).send("something went wrong")

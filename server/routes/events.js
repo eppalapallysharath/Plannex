@@ -11,6 +11,6 @@ router.post("/createEvent", upload.single("poster"), createEventChecks,validateA
 router.get("/", getAllEvents)
 router.get("/:eid", idCheck, validation ,getEvent)
 router.put("/:eid", upload.single("poster"), idCheck, updateEventChecks, validateAuthHeaders,validation , authentication, authorization("organizer") ,updateEvent)
-router.delete("/:eid",deleteEvent)
+router.delete("/:eid",idCheck,validateAuthHeaders,validation, authentication, authorization("organizer"),deleteEvent)
 
 module.exports = router

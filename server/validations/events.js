@@ -161,4 +161,11 @@ exports.updateEventChecks = [
     .withMessage("price must be >= 0")
     .bail()
     .toFloat(),
+     body("poster")
+     .optional()
+  .custom((_, { req }) => {
+    if (!req.file) throw new Error("poster file is required");
+    return true;
+  })
+  .withMessage("posterImage is required"),
 ];
