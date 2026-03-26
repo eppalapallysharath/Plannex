@@ -3,7 +3,10 @@ const app = express()
 const {port} = require("./constants/env.js")
 const {apiNotFound, globalError} = require("./middlewares/appLevelMiddlewares.js")
 const { connectDb } = require("./configs/mongodb.js")
+const cors = require("cors")
 connectDb()
+
+app.use(cors({origin:["http://localhost:5173"]}))
 
 app.use(express.json())
 app.use(express.urlencoded())
