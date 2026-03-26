@@ -1,0 +1,1 @@
+export const baseUrl = "https://plannex-server.onrender.com/api"
