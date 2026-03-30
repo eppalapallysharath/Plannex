@@ -3,7 +3,17 @@ import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const { user, logout } = useAuth();
-  console.log(user)
+
+  function dashboardlink () {
+    if(user.userInfo.role === "admin"){
+      return "/admin/dashboard"
+  }else if(user.userInfo.role === "organizer"){
+          return "/organizer/dashboard"
+  }else{
+    return "/dashboard"
+  }
+}
+
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -12,12 +22,27 @@ const Header = () => {
           <Link to="/events" className="text-gray-700 hover:text-blue-600">Events</Link>
           {user ? (
             <>
-              <Link
+
+              {/* <Link
                 to={user.userInfo.role === 'organizer' ? '/organizer/dashboard' : '/dashboard'}
+                className="text-gray-700 hover:text-blue-600" */}
+              {/* >
+                Dashboard
+              </Link> */}
+              {/* { */}
+               <Link
+                to= {dashboardlink()}
                 className="text-gray-700 hover:text-blue-600"
               >
                 Dashboard
               </Link>
+
+              {/* <Link
+                to={user.userInfo.role === 'organizer' ? '/organizer/dashboard' : '/dashboard'}
+                className="text-gray-700 hover:text-blue-600"
+              >
+                Dashboard
+              </Link> */}
               <button
                 onClick={logout}
                 className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"

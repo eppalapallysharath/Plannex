@@ -21,6 +21,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
 import OrganizerSignup from "./pages/OrganizerSignup"
+import UpdateEventById from './pages/updateEventById';
 
 const PrivateRoute = ({ element }) => {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ function App() {
               <Route path="/profile" element={<PrivateRoute element={<ProfilePage />} />} />
               <Route path="/organizer/dashboard" element={<PrivateRoute element={<OrganizerDashboardPage />} />} />
               <Route path="/organizer/create-event" element={<PrivateRoute element={<CreateEventPage />} />} />
+              <Route path="/organizer/update-event/:eid" element={<PrivateRoute element={<UpdateEventById />} />} />
               <Route path="/organizer/manage-events" element={<PrivateRoute element={<ManageEventsPage />} />} />
               <Route path="/organizer/event-participants" element={<PrivateRoute element={<EventParticipantsPage />} />} />
               <Route path="/admin/dashboard" element={<PrivateRoute element={<AdminDashboardPage />} />} />
