@@ -20,6 +20,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
+import OrganizerSignup from "./pages/OrganizerSignup"
 
 const PrivateRoute = ({ element }) => {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ function App() {
               <Route path="/events/:id" element={<EventDetailsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path='/organizer/signup' element={<OrganizerSignup/>} />
               <Route path="/dashboard" element={<PrivateRoute element={<UserDashboardPage />} />} />
               <Route path="/my-events" element={<PrivateRoute element={<MyEventsPage />} />} />
               <Route path="/profile" element={<PrivateRoute element={<ProfilePage />} />} />

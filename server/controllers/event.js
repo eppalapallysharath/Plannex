@@ -166,3 +166,10 @@ exports.uploadEventPoster = (req, res, next)=>{
         next(error)
     }
 }
+
+
+exports.myevent= async(req, res)=>{
+    const userdata = await eventsModel.find({organizedID:req.user._id})
+    res.json({success:true, message:"fetched all own events", data:{
+userdata    }})
+}

@@ -1,10 +1,14 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { baseUrl } from '../constants/api';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const EventDetailsPage = () => {
   const { id } = useParams();
   const [eventData, setEventData] = useState({})
+  const {user} = useAuth()
 
   const fetchEvent = async() =>{
     const res = await fetch(`${baseUrl}/events/${id}`)
@@ -15,6 +19,32 @@ const EventDetailsPage = () => {
   useEffect(()=>{
     fetchEvent()
   },[])
+
+  const registerEvent = async()=>{
+    if(!user){
+      toast.error("Please login to register for an event")
+      return
+    }
+
+    try {
+       if(user){
+    
+       const res = await axios.post(`${baseUrl}/eventRegister/register/${id}`, {}, {
+        headers:{
+          Authorization:`Bearer ${user.token}`
+        }
+      })
+        toast.success(res.data.data.message)
+    }
+    } catch (error) {
+      if(error.response.status === 409 ){
+        toast.warning(error.response.data.message)
+      }else{
+        toast.error("something went wrong")
+      }
+    }
+   
+  }
 
   if (!eventData) return <div>Event not found</div>;
 // console.log(eventData)
@@ -34,7 +64,7 @@ const EventDetailsPage = () => {
         <div>
           {/* <h2 className="text-xl font-semibold mb-2">Organizer</h2> */}
           {/* <p>{eventData}</p> */}
-          <button className="bg-blue-600 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700">Register for Event</button>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700" onClick={registerEvent}>Register for Event</button>
         </div>
       </div>
     </div>

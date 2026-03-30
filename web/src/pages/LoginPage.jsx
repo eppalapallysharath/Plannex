@@ -6,20 +6,43 @@ import { baseUrl } from '../constants/api';
 import { toast } from 'react-toastify';
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const {setUser} =useAuth()
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async(e) => {
     e.preventDefault();
     try {
+      setLoading(true)
       const res = await axios.post(`${baseUrl}/auth/login`,{email:form.email, password:form.password})
-      console.log(res)
+      setLoading(false)
+      console.log(res.data)
       toast.success(res.data.message)
+      setUser({userInfo: res.data.data.data, token:res.data.data.token})
+      if(res?.data?.data?.data?.role === "participant"){
+        navigate("/dashboard")
+      }else if(res?.data?.data?.data?.role === "organizer"){
+        navigate("/organizer/dashboard")
+      }else if (res?.data?.data?.data?.role === "admin"){
+        navigate("/admin/dashboard")
+      }else{
+        toast.error("something went wrong try again later")
+      }
+      
+
     } catch (error) {
-      console.log(error.message)
-      // toast.error(e)
+      setLoading(false)
+      if(error.response.status == 404){
+        toast.error(error.response.data.message)
+      }else if (error.response.status == 400){
+        toast.warning(error.response.data.message)
+      }else{
+        toast.error(JSON.stringify(error.response.data))
+      }
+    }finally{
+      setLoading(false)
     }
     
     // const result = login(form);
@@ -67,7 +90,7 @@ const LoginPage = () => {
             />
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
-          <button type="submit" className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Log In</button>
+          <button type="submit" className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700" disabled={loading} style={{ background: loading ? "#7997d4":"blue" }}>Log In</button>
         </form>
         <p className="mt-4 text-sm text-gray-600">Don’t have an account? <Link to="/register" className="text-blue-600 hover:underline">Sign up</Link></p>
       </div>

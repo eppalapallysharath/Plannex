@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 
 const EventCard = ({ event }) => {
-  console.log(event)
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <img src={event.posterImage} alt={event.title} className="w-full h-48 object-cover" />
