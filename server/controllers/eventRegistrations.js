@@ -1,6 +1,6 @@
 const {eventsModel} = require("../models/eventsModel.js")
 const {eventRegistrationsModel} = require("../models/eventRegistrationModel.js")
-const {mail} = require("../configs/nodemailer.js") 
+const {mail} = require("../configs/mail.js")
 const {eventRegistrationTemplate} = require("../helperfunctions/emailTemplate.js")
 const {email} = require("../constants/env.js")
 exports.registerEvent = async(req,res)=>{
@@ -22,9 +22,9 @@ exports.registerEvent = async(req,res)=>{
         await registerEvent.save()
         const event = await eventsModel.findById(req.params.eid)
         console.log(event)
-        await mail.sendMail({
+        await mail.send({
             to:req.user.email,
-            from:email,
+            from:"sharath10kcoders@gmail.com",
             subject:"Event Registration Successful 🎟️",
             html:eventRegistrationTemplate(req.user.name,event.title, event.date, event.location )
         })

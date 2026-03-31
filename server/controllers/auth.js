@@ -8,7 +8,7 @@ const {
   signupTemplateForParticipants,
   signupTemplateForOrganizer,
 } = require("../helperfunctions/emailTemplate.js");
-const { mail } = require("../configs/nodemailer.js");
+const {mail} = require("../configs/mail.js")
 const env = require("../constants/env.js");
 const cloudinary = require("../configs/cloudinary.js");
 const fs = require("fs")
@@ -33,8 +33,8 @@ exports.register = async (req, res, next) => {
       email,
       password: hashPassword,
     });
-    mail.sendMail({
-      from: env.email,
+    mail.send({
+            from:"sharath10kcoders@gmail.com",
       to: email,
       subject: "Welcome to plannex",
       html: signupTemplateForParticipants(name),
@@ -74,8 +74,8 @@ exports.signupAsOrganizers = async (req, res, next) => {
       password: hashedPassword,
       role: "organizer",
     });
-    mail.sendMail({
-      from: env.email,
+    mail.send({
+            from:"sharath10kcoders@gmail.com",
       to: email,
       subject: "Welcome to Plannex",
       html: signupTemplateForOrganizer(name),
