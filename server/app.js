@@ -6,7 +6,7 @@ const { connectDb } = require("./configs/mongodb.js")
 const cors = require("cors")
 connectDb()
 
-app.use(cors({origin:["http://localhost:5173"]}))
+app.use(cors({origin:["http://localhost:5173", "https://plannex-eight.vercel.app"]}))
 
 app.use(express.json())
 app.use(express.urlencoded())
